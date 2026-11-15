@@ -1,0 +1,2 @@
+i use buildroot to make a linux image for my rpi4
+teh exact buildroot version and commit id are mentioned in the root/buildroot_baseline.md doc if you wish to recreate the same environment on your target device
