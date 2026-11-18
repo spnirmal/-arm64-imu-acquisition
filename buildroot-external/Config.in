@@ -1,0 +1,5 @@
+menu "Custom packages"
+
+source "$BR2_EXTERNAL_DRIVERLAB_PATH/package/spi-userspace-acquisition/Config.in"
+
+endmenu

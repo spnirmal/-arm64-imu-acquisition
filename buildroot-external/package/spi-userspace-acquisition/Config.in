@@ -1,0 +1,4 @@
+config BR2_PACKAGE_SPI_USERSPACE_ACQUISITION
+	bool "spi-userspace-acquisition"
+	help
+	  SPI userspace acquisition test application.
