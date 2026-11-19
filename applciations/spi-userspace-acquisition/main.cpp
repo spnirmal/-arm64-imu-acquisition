@@ -15,6 +15,20 @@
 #define SPEED 100000
 #define BYTES 3
 
+int send_whoami(int fd);
+int mpu9250_write_reg(int fd, uint8_t reg, uint8_t value);
+int powerup_seq(int fd);
+int read_accel(int fd);
+
+#define MPU9250_PWR_MGMT_1 0x6B
+#define MPU9250_PWR_MGMT_2 0x6C
+#define MPU9250_CONFIG 0x1A
+#define MPU9250_SMPLRT_DIV 0x19
+#define MPU9250_GYRO_CONFIG 0x1B
+#define MPU9250_ACCEL_CONFIG 0x1C
+#define MPU9250_ACCEL_CONFIG2 0x1D
+#define MPU9250_ACCEL_XOUT_H 0x3B
+
 double time_time(void) {
   struct timeval tv;
   double t;
@@ -151,13 +165,43 @@ int main(int argc, char *argv[]) {
 
   fd = spiOpen(0, speed, 0);
 
-  start = time_time();
-
   if (fd < 0)
     return 1;
 
-  memset(&TXBuf[0], 0xF5, 1);
-  memset(&TXBuf[1], 0x00, 1);
+  if (send_whoami(fd) != 1) {
+    printf("who am i failed\n");
+  }
+
+  powerup_seq(fd);
+  printf("powerup sequence done\r\n");
+
+  while (1) {
+    read_accel(fd);
+    sleep(1);
+  }
+
+  close(fd);
+}
+
+int mpu9250_write_reg(int fd, uint8_t reg, uint8_t value) {
+  TXBuf[0] = reg & 0x7F; // Write operation
+  TXBuf[1] = value;
+
+  int ret = spiXfer(fd, speed, TXBuf, RXBuf, 2);
+
+  if (ret != 2) {
+    perror("SPI register write failed");
+    return 0;
+  }
+
+  return 1;
+}
+
+int send_whoami(int fd) {
+
+  memset(&TXBuf[0], 0xF5, 1); // sending who ami i
+  memset(&TXBuf[1], 0x00,
+         1); // sending 0x00 to get the response from the mpu9250
 
   int count = 2;
 
@@ -165,11 +209,76 @@ int main(int argc, char *argv[]) {
   if (ret < 0) {
     perror("spi transfer failed\n");
     close(fd);
-    return 1;
+    return 0;
   }
-  diff = time_time() - start;
 
   printf("who am i : 0x%02X\n", (unsigned char)RXBuf[1]);
+  return 1;
+}
 
-  close(fd);
+int powerup_seq(int fd) {
+  // 1. Reset device
+  if (!mpu9250_write_reg(fd, MPU9250_PWR_MGMT_1, 0x80))
+    return 0;
+
+  usleep(100000); // Wait 100 ms
+
+  // 2. Select PLL clock with X-axis gyro reference
+  if (!mpu9250_write_reg(fd, MPU9250_PWR_MGMT_1, 0x01))
+    return 0;
+
+  usleep(10000);
+
+  // 3. Enable accelerometer and gyroscope axes
+  if (!mpu9250_write_reg(fd, MPU9250_PWR_MGMT_2, 0x00))
+    return 0;
+
+  // 4. Configure digital low-pass filter
+  if (!mpu9250_write_reg(fd, MPU9250_CONFIG, 0x03))
+    return 0;
+
+  // 5. Sample rate divider
+  if (!mpu9250_write_reg(fd, MPU9250_SMPLRT_DIV, 0x04))
+    return 0;
+
+  // 6. Gyroscope: ±250 degrees/sec
+  if (!mpu9250_write_reg(fd, MPU9250_GYRO_CONFIG, 0x00))
+    return 0;
+
+  // 7. Accelerometer: ±2g
+  if (!mpu9250_write_reg(fd, MPU9250_ACCEL_CONFIG, 0x00))
+    return 0;
+
+  // 8. Accelerometer low-pass filter
+  if (!mpu9250_write_reg(fd, MPU9250_ACCEL_CONFIG2, 0x03))
+    return 0;
+
+  usleep(10000);
+
+  return 1;
+}
+
+int read_accel(int fd) {
+  memset(TXBuf, 0, 7);
+  TXBuf[0] = (char)(MPU9250_ACCEL_XOUT_H | 0x80); // Read operation
+
+  int ret = spiXfer(fd, speed, TXBuf, RXBuf, 7);
+  if (ret < 0) {
+    perror("spi transfer failed\n");
+    return 0;
+  }
+
+  int16_t raw_x = (int16_t)(((uint8_t)RXBuf[1] << 8) | (uint8_t)RXBuf[2]);
+  int16_t raw_y = (int16_t)(((uint8_t)RXBuf[3] << 8) | (uint8_t)RXBuf[4]);
+  int16_t raw_z = (int16_t)(((uint8_t)RXBuf[5] << 8) | (uint8_t)RXBuf[6]);
+
+  // ±2g sensitivity is 16384 LSB/g
+  float ax = (float)raw_x / 16384.0f;
+  float ay = (float)raw_y / 16384.0f;
+  float az = (float)raw_z / 16384.0f;
+
+  printf("Accel: X=%.2f g, Y=%.2f g, Z=%.2f g\n", ax, ay, az);
+  fflush(stdout);
+
+  return 1;
 }
