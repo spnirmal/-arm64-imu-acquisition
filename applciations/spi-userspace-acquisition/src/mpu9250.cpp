@@ -86,7 +86,33 @@ int mpu9250::powerup_seq(int fd) {
   if (!mpu9250_write_reg(fd, MPU9250_ACCEL_CONFIG2, 0x03))
     return 0;
 
+  // 9. inteerupt enable
+  if (!mpu9250_write_reg(fd, MPU9250_INT_ENABLE, 0x01))
+    return 0;
+
+  // Clear latched interrupt
+  if (!mpu9250_read_reg(fd, MPU9250_INT_STATUS))
+    return 0;
+
   usleep(10000);
+
+  return 1;
+}
+
+int mpu9250::mpu9250_read_reg(int fd, uint8_t reg, uint8_t *value) {
+  TXBuf[0] = reg | 0x80; // Read operation
+  TXBuf[1] = 0x00;
+
+  int ret = spiXfer(fd, this->speed, TXBuf, RXBuf, 2);
+
+  if (ret != 2) {
+    perror("SPI register read failed");
+    return 0;
+  }
+
+  if (value) {
+    *value = (uint8_t)RXBuf[1];
+  }
 
   return 1;
 }
