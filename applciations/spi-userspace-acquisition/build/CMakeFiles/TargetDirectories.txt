@@ -1,0 +1,3 @@
+/home/sp/Documents/projects/arm64-driver-comparison/applciations/spi-userspace-acquisition/build/CMakeFiles/spi-userspace-acquisition.dir
+/home/sp/Documents/projects/arm64-driver-comparison/applciations/spi-userspace-acquisition/build/CMakeFiles/edit_cache.dir
+/home/sp/Documents/projects/arm64-driver-comparison/applciations/spi-userspace-acquisition/build/CMakeFiles/rebuild_cache.dir
