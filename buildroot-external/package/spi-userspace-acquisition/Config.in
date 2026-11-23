@@ -1,4 +1,10 @@
 config BR2_PACKAGE_SPI_USERSPACE_ACQUISITION
 	bool "spi-userspace-acquisition"
+	depends on BR2_INSTALL_LIBSTDCPP
+	depends on BR2_TOOLCHAIN_HEADERS_AT_LEAST_4_8 # libgpiod
+	select BR2_PACKAGE_LIBGPIOD
 	help
 	  SPI userspace acquisition test application.
+
+comment "spi-userspace-acquisition needs a toolchain w/ C++, headers >= 4.8"
+	depends on !BR2_INSTALL_LIBSTDCPP || !BR2_TOOLCHAIN_HEADERS_AT_LEAST_4_8

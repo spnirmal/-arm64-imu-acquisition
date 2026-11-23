@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/sp/Documents/projects/arm64-driver-comparison/applciations/spi-userspace-acquisition/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
