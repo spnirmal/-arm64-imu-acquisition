@@ -2,6 +2,7 @@
 #define MPU9250_HPP
 
 #include <stdint.h>
+#include <time.h>
 
 #define MPU9250_PWR_MGMT_1 0x6B
 #define MPU9250_PWR_MGMT_2 0x6C
@@ -30,6 +31,7 @@ public:
   ~mpu9250(); // destructor
 
   int read_accel();
+  int read_accel(float *ax, float *ay, float *az, struct timespec *post_spi_ts = nullptr);
 };
 
 #endif

@@ -1,9 +1,9 @@
 #include "mpu9250.hpp"
-#include "inc/mpu9250.hpp"
 #include "spi-device.hpp"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 int send_whoami(int fd, int speed);
@@ -70,8 +70,8 @@ int mpu9250::powerup_seq(int fd) {
   if (!mpu9250_write_reg(fd, MPU9250_CONFIG, 0x03))
     return 0;
 
-  // 5. Sample rate divider
-  if (!mpu9250_write_reg(fd, MPU9250_SMPLRT_DIV, 0x04))
+  // 5. Sample rate divider: SMPLRT_DIV = 0 -> 1000 Hz / (1 + 0) = 1000 Hz
+  if (!mpu9250_write_reg(fd, MPU9250_SMPLRT_DIV, 0x00))
     return 0;
 
   // 6. Gyroscope: ±250 degrees/sec
@@ -132,10 +132,17 @@ int mpu9250::mpu9250_write_reg(int fd, uint8_t reg, uint8_t value) {
 }
 
 int mpu9250::read_accel() {
+  return read_accel(nullptr, nullptr, nullptr, nullptr);
+}
+
+int mpu9250::read_accel(float *ax_out, float *ay_out, float *az_out, struct timespec *post_spi_ts) {
   memset(TXBuf, 0, 7);
-  TXBuf[0] = (char)(MPU9250_ACCEL_XOUT_H | 0x80); // Read operation
+  TXBuf[0] = (char)(MPU9250_ACCEL_XOUT_H | 0x80); // Read operation starting at 0x3B
 
   int ret = spiXfer(fd, speed, TXBuf, RXBuf, 7);
+  if (post_spi_ts) {
+    clock_gettime(CLOCK_MONOTONIC, post_spi_ts);
+  }
   if (ret < 0) {
     perror("spi transfer failed\n");
     return 0;
@@ -150,8 +157,9 @@ int mpu9250::read_accel() {
   float ay = (float)raw_y / 16384.0f;
   float az = (float)raw_z / 16384.0f;
 
-  printf("Accel: X=%.2f g, Y=%.2f g, Z=%.2f g\n", ax, ay, az);
-  fflush(stdout);
+  if (ax_out) *ax_out = ax;
+  if (ay_out) *ay_out = ay;
+  if (az_out) *az_out = az;
 
   return 1;
 }

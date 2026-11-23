@@ -60,6 +60,10 @@ int gpio::configure() {
 }
 
 int gpio::wait_event(int timeout_ms) {
+  return wait_event(static_cast<struct timespec *>(nullptr), timeout_ms);
+}
+
+int gpio::wait_event(struct timespec *event_ts, int timeout_ms) {
   if (!this->line) {
     return -1;
   }
@@ -81,6 +85,41 @@ int gpio::wait_event(int timeout_ms) {
   if (gpiod_line_event_read(this->line, &event) < 0) {
     perror("gpiod_line_event_read");
     return -1;
+  }
+
+  if (event_ts) {
+    *event_ts = event.ts;
+  }
+
+  return 1;
+}
+
+int gpio::wait_event(struct gpiod_line_event *event_out, int timeout_ms) {
+  if (!this->line) {
+    return -1;
+  }
+
+  struct timespec ts;
+  struct timespec *ts_ptr = nullptr;
+  if (timeout_ms >= 0) {
+    ts.tv_sec = timeout_ms / 1000;
+    ts.tv_nsec = (timeout_ms % 1000) * 1000000L;
+    ts_ptr = &ts;
+  }
+
+  int ret = gpiod_line_event_wait(this->line, ts_ptr);
+  if (ret <= 0) {
+    return ret; // 0 on timeout, -1 on error
+  }
+
+  struct gpiod_line_event event;
+  if (gpiod_line_event_read(this->line, &event) < 0) {
+    perror("gpiod_line_event_read");
+    return -1;
+  }
+
+  if (event_out) {
+    *event_out = event;
   }
 
   return 1;

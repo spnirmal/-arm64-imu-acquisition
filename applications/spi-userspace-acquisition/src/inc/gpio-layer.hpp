@@ -2,6 +2,7 @@
 #define GPIO_LAYER_HPP
 
 #include <gpiod.h>
+#include <time.h>
 
 #define ACCEL_INT_GPIO 17
 
@@ -18,6 +19,8 @@ public:
 
   int configure();
   int wait_event(int timeout_ms = -1);
+  int wait_event(struct timespec *event_ts, int timeout_ms = -1);
+  int wait_event(struct gpiod_line_event *event_out, int timeout_ms = -1);
 
   int get_event_fd() const { return event_fd; }
 
