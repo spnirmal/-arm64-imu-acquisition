@@ -1,0 +1,41 @@
+// Overlay for Invensense MPU9250 9-DoF IMU on SPI0 CE0 using kernel IIO driver
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "brcm,bcm2835";
+
+    /* Disable spidev on SPI0 CE0 to prevent conflicts with kernel driver */
+    fragment@0 {
+        target = <&spidev0>;
+        __overlay__ {
+            status = "disabled";
+        };
+    };
+
+    /* Attach MPU9250 to SPI0 CE0 with GPIO interrupt */
+    fragment@1 {
+        target = <&spi0>;
+        __overlay__ {
+            #address-cells = <1>;
+            #size-cells = <0>;
+            status = "okay";
+
+            mpu6500: mpu6500@0 {
+                compatible = "invensense,mpu6500";
+                reg = <0>;
+                spi-max-frequency = <1000000>;
+
+                interrupt-parent = <&gpio>;
+                interrupts = <17 1>; /* GPIO 17, 1 = IRQ_TYPE_EDGE_RISING */
+
+                status = "okay";
+            };
+        };
+    };
+
+    __overrides__ {
+        interrupt = <&mpu6500>, "interrupts:0";
+        speed = <&mpu6500>, "spi-max-frequency:0";
+    };
+};

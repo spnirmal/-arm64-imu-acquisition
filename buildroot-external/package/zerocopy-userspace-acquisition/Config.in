@@ -1,0 +1,10 @@
+config BR2_PACKAGE_ZEROCOPY_USERSPACE_ACQUISITION
+	bool "zerocopy-userspace-acquisition"
+	depends on BR2_INSTALL_LIBSTDCPP
+	depends on BR2_PACKAGE_IMU_ZEROCOPY
+	help
+	  Zero-copy IMU sensor consumer and benchmarking application for Arch-C.
+	  Directly mmaps /dev/imu_zerocopy SPSC ring buffer into userspace.
+
+comment "zerocopy-userspace-acquisition needs a toolchain w/ C++"
+	depends on !BR2_INSTALL_LIBSTDCPP

@@ -1,0 +1,41 @@
+// Overlay for Invensense MPU6500/9250 on SPI0 CE0 using custom zero-copy DMA driver
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "brcm,bcm2835";
+
+    /* Disable spidev on SPI0 CE0 to prevent conflicts with custom driver */
+    fragment@0 {
+        target = <&spidev0>;
+        __overlay__ {
+            status = "disabled";
+        };
+    };
+
+    /* Attach imu_zerocopy to SPI0 CE0 with GPIO interrupt */
+    fragment@1 {
+        target = <&spi0>;
+        __overlay__ {
+            #address-cells = <1>;
+            #size-cells = <0>;
+            status = "okay";
+
+            imu_zerocopy: imu_zerocopy@0 {
+                compatible = "custom,mpu6500-zerocopy";
+                reg = <0>;
+                spi-max-frequency = <4000000>;
+
+                interrupt-parent = <&gpio>;
+                interrupts = <17 1>; /* GPIO 17, 1 = IRQ_TYPE_EDGE_RISING */
+
+                status = "okay";
+            };
+        };
+    };
+
+    __overrides__ {
+        interrupt = <&imu_zerocopy>, "interrupts:0";
+        speed = <&imu_zerocopy>, "spi-max-frequency:0";
+    };
+};

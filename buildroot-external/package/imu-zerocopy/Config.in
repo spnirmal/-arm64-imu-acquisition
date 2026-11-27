@@ -1,0 +1,10 @@
+config BR2_PACKAGE_IMU_ZEROCOPY
+	bool "imu-zerocopy"
+	depends on BR2_LINUX_KERNEL
+	help
+	  High-performance zero-copy SPI driver for Invensense MPU6500/9250 IMU.
+	  Provides /dev/imu_zerocopy misc character device with an SPSC
+	  ring buffer directly mapped to userspace via mmap().
+
+comment "imu-zerocopy needs a Linux kernel to be built"
+	depends on !BR2_LINUX_KERNEL

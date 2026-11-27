@@ -1,0 +1,8 @@
+config BR2_PACKAGE_IIO_USERSPACE_ACQUISITION
+	bool "iio-userspace-acquisition"
+	depends on BR2_INSTALL_LIBSTDCPP
+	help
+	  IIO sensor data acquisition and benchmarking application for Arch-B.
+
+comment "iio-userspace-acquisition needs a toolchain w/ C++"
+	depends on !BR2_INSTALL_LIBSTDCPP

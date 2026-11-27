@@ -1,5 +1,8 @@
 menu "Custom packages"
 
 source "$BR2_EXTERNAL_DRIVERLAB_PATH/package/spi-userspace-acquisition/Config.in"
+source "$BR2_EXTERNAL_DRIVERLAB_PATH/package/iio-userspace-acquisition/Config.in"
+source "$BR2_EXTERNAL_DRIVERLAB_PATH/package/imu-zerocopy/Config.in"
+source "$BR2_EXTERNAL_DRIVERLAB_PATH/package/zerocopy-userspace-acquisition/Config.in"
 
 endmenu

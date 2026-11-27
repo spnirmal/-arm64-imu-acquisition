@@ -1,0 +1,5 @@
+# Linux kernel configuration fragment for Arch C (Custom Zero-Copy SPI Driver)
+CONFIG_SPI=y
+CONFIG_SPI_BCM2835=y
+# CONFIG_INV_MPU6050_IIO is not set
+# CONFIG_INV_MPU6050_SPI is not set

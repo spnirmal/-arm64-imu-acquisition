@@ -1,0 +1,28 @@
+# Raspberry Pi 4 Model B configuration for Architecture C (Zero-Copy Driver)
+# Override using BR2_PACKAGE_RPI_FIRMWARE_CONFIG_FILE
+
+start_file=start4.elf
+fixup_file=fixup4.dat
+
+kernel=Image
+
+# Disable overscan
+disable_overscan=1
+
+# GPU memory allocation
+gpu_mem_256=100
+gpu_mem_512=100
+gpu_mem_1024=100
+
+# Enable UART console on ttyAMA0
+dtoverlay=miniuart-bt
+enable_uart=1
+
+# 64-bit kernel support
+arm_64bit=1
+
+# Enable SPI0 hardware controller
+dtparam=spi=on
+
+# Architecture C: Invensense MPU9250 Zero-Copy Driver overlay
+dtoverlay=mpu9250-zerocopy
